@@ -16,6 +16,9 @@ app.use(cookieParser())
 app.get('/', (req, res)=>{
     res.render('index');  
 })
+app.get('/login', (req, res)=>{
+    res.render('login');  
+})
 
 app.post('/register', async(req, res)=>{
     let {username, name, age, email, password} = req.body
@@ -41,6 +44,16 @@ app.post('/register', async(req, res)=>{
         })
         
     })    
+} )
+app.post('/login', async(req, res)=>{
+    let {email, password} = req.body
+    let user =  await userModel.findOne({email})
+    if (!user) res.status(500).send('Something went wrong!')
+
+    bcrypt.compare(password, user.password, (err, result)=>{
+        if (result) res.status(200).send("You can login")
+        else res.redirect('/login')
+    })
 } )
 
 app.listen(3000)
