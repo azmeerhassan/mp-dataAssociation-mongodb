@@ -20,6 +20,12 @@ app.get('/login', (req, res)=>{
     res.render('login');  
 })
 
+app.get('/profile',isLoggedIn,  (req, res)=>{
+    console.log(req.user);
+    
+    res.render('login');  
+})
+
 app.post('/register', async(req, res)=>{
     let {username, name, age, email, password} = req.body
     let user =  await userModel.findOne({email})
@@ -51,7 +57,12 @@ app.post('/login', async(req, res)=>{
     if (!user) res.status(500).send('Something went wrong!')
 
     bcrypt.compare(password, user.password, (err, result)=>{
-        if (result) res.status(200).send("You can login")
+        if (result){
+            
+            let token = jwt.sign({email: email, userid: user._id}, 'shhh')
+            res.cookie("token", token)
+            res.status(200).send("You can login")
+        } 
         else res.redirect('/login')
     })
 } )
@@ -60,5 +71,16 @@ app.get('/logout', (req, res)=>{
     res.cookie('token', "")
     res.redirect('/login')
 })
+
+function isLoggedIn (req, res, next) {
+    if(req.cookies.token === '') res.send("You must be logged in.")
+    else {
+       let data = jwt.verify(req.cookies.token, 'shhh')
+       req.user = data;
+
+    }    
+    next()
+    
+}
 
 app.listen(3000)
