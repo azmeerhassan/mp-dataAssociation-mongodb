@@ -29,7 +29,7 @@ app.get('/profile',isLoggedIn,  (req, res)=>{
 app.post('/register', async(req, res)=>{
     let {username, name, age, email, password} = req.body
     let user =  await userModel.findOne({email})
-    if (user) res.status(500).send('User already registered!')
+    if (user) return res.status(500).send('User already registered!')
 
     bcrypt.genSalt(10, (err, salt)=>{
         bcrypt.hash(password, salt, async (err, hash)=>{
@@ -54,14 +54,14 @@ app.post('/register', async(req, res)=>{
 app.post('/login', async(req, res)=>{
     let {email, password} = req.body
     let user =  await userModel.findOne({email})
-    if (!user) res.status(500).send('Something went wrong!')
+    if (!user)return res.status(500).send('Something went wrong!')
 
     bcrypt.compare(password, user.password, (err, result)=>{
         if (result){
             
             let token = jwt.sign({email: email, userid: user._id}, 'shhh')
             res.cookie("token", token)
-            res.status(200).send("You can login")
+            return res.status(200).send("You can login")
         } 
         else res.redirect('/login')
     })
@@ -77,9 +77,9 @@ function isLoggedIn (req, res, next) {
     else {
        let data = jwt.verify(req.cookies.token, 'shhh')
        req.user = data;
-
+       next()
     }    
-    next()
+    
     
 }
 
