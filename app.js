@@ -6,7 +6,8 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const path = require('path')
-const multerconfig = require('./config/multerconfig')
+const upload = require('./config/multerconfig')
+
 
 
 
@@ -25,6 +26,18 @@ app.use(cookieParser())
 
 app.get('/', (req, res)=>{
     res.render('index');  
+})
+
+app.get('/profile/upload', (req, res)=>{
+    res.render('profileupload');  
+})
+
+app.post('/upload',isLoggedIn, upload.single('image'),  async(req, res)=>{
+    let user =  await userModel.findOne({email: req.user.email})
+    user.profilepic =  req.file.filename
+    await user.save()
+    res.redirect('/profile')
+     
 })
 
 
